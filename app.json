@@ -1,5 +1,13 @@
 {
   "expo": {
+    "plugins": [
+      [
+        "expo-media-library",
+        {
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
+    ],
     "name": "bikesharing-front",
     "slug": "bikesharing-front",
     "version": "1.0.0",
@@ -25,6 +33,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+
   }
 }
