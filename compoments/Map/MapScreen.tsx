@@ -41,8 +41,9 @@ const MapScreen: React.FC = () =>{
     return (
         <View style={{ flex: 1, width:'100%'}}>
             {location && (
+
                 <MapView
-                    style={{ flex: 1, width:'100%' }}
+                    style={{flex: 1, width: '100%', paddingTop: 60}}
                     initialRegion={{
                         latitude: location.coords.latitude,
                         longitude: location.coords.longitude,
@@ -55,11 +56,15 @@ const MapScreen: React.FC = () =>{
                     userLocationPriority={"high"}
                     loadingEnabled={true}
                     showsMyLocationButton={true}
-                    >
+                    showsCompass={true}
+                    toolbarEnabled={false}
+
+                >
 
                     {bikes.map((bike) => (
                         <BikeMarker key={bike.id} bike={bike} onPress={() => handleMarkerPress(bike)}/>
                     ))}
+
                 </MapView>
             )}
             {selectedBike && showToggleUpBar && (
