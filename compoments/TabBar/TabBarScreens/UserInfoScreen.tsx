@@ -1,8 +1,11 @@
-import React from 'react';
-import {View, Text, TextInput, TouchableOpacity, StyleSheet} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, Text, TextInput, TouchableOpacity, StyleSheet, Alert} from 'react-native';
 import { Formik } from 'formik';
 import moment from 'moment';
-import {UserInterface} from "../types/mocks";
+import {HOST_NAME, UserInterface} from "../../../types/mocks";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 const styles = StyleSheet.create({
     container: {
@@ -46,10 +49,60 @@ const styles = StyleSheet.create({
     },
 });
 
-const UserInfo = ( user: UserInterface ) => {
-    const creationTime = moment(user.createdAt).format('MMMM Do YYYY, h:mm:ss a');
-    const lastUpdateTime = moment(user.updatedAt).format('MMMM Do YYYY, h:mm:ss a');
+const UserInfo:React.FC = () => {
+    const [user, setUser] = useState<UserInterface | null>(null);
 
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const token = await AsyncStorage.getItem('authToken');
+                const response = await axios.get(`${HOST_NAME}/user/current`, {
+                    headers: {
+                        Authorization: `${token}`,
+                    },
+                });
+                setUser(response.data);
+                console.log(user);
+            } catch (error) {
+                console.error(error);
+                Alert.alert('Can not update');
+            }
+        };
+        fetchUser();
+    }, []);
+
+    const handleUpdate = async (values: any) => {
+        try {
+            const token = await AsyncStorage.getItem('authToken');
+            if (
+                values.firstName !== user?.firstName ||
+                values.lastName !== user?.secondName ||
+                values.phone !== user?.phone ||
+                values.email !== user?.email ||
+                values.password !== ''
+            ) {
+                const response = await axios.put<UserInterface>(
+                    `${HOST_NAME}/user/update`,
+                    values,
+                    {
+                        headers: {
+                            Authorization: `${token}`,
+                        },
+                    }
+                );
+                setUser(response.data);
+                await AsyncStorage.setItem('authToken', response.data.token);
+            }
+        } catch (error) {
+            console.error(error);
+            Alert.alert('Can not update');
+        }
+    };
+
+    const creationTime = user ? moment(user.createdAt).format('MMMM Do YYYY, h:mm:ss a') : '';
+    const lastUpdateTime = user ? moment(user.updatedAt).format('MMMM Do YYYY, h:mm:ss a') : '';
+
+    console.log(user?.email);
     return (
         <View style={styles.container}>
             <Text style={styles.title}>User Info</Text>
@@ -58,11 +111,18 @@ const UserInfo = ( user: UserInterface ) => {
             <Text style={styles.label}>Last Updated:</Text>
             <Text style={styles.value}>{lastUpdateTime}</Text>
             <Formik
-                initialValues={{ firstName: '', lastName: '', phone: '', email: '', password: '' }}
-                onSubmit={(values) => console.log(values)}
+                initialValues={{
+                    firstName: user?.firstName || '',
+                    lastName: user?.secondName || '',
+                    phone: user?.phone || '',
+                    email: user?.email || '',
+                    password: ''
+                }}
+                onSubmit={handleUpdate}
             >
-                {({ handleChange, handleBlur, handleSubmit, values }) => (
+                {({ handleChange, handleBlur, values }) => (
                     <>
+                        <Text>{values.lastName}</Text>
                         <View style={styles.inputContainer}>
                             <TextInput
                                 style={styles.input}
@@ -110,7 +170,7 @@ const UserInfo = ( user: UserInterface ) => {
                                 secureTextEntry
                             />
                         </View>
-                        <TouchableOpacity style={styles.button}>
+                        <TouchableOpacity style={styles.button} onPress={() => handleUpdate(values)}>
                             <Text style={styles.buttonText}>Update</Text>
                         </TouchableOpacity>
                     </>

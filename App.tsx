@@ -1,65 +1,46 @@
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-
-import MapScreen from "./compoments/Map/MapScreen";
-import React, {useState} from "react";
-import NavigationMenu from "./compoments/MenuPanel";
+import React, {useEffect, useState} from 'react';
+import UserInfoScreen from "./compoments/TabBar/TabBarScreens/UserInfoScreen";
+import LoginSignupScreen from "./compoments/LoginSignupScreen";
+import CreateBikeScreen from "./compoments/TabBar/TabBarScreens/CreateBikeScreen";
+import SearchScreen from "./compoments/TabBar/TabBarScreens/SearchScreen";
+import {NavigationContainer, useFocusEffect, useNavigation} from "@react-navigation/native";
+import {createStackNavigator} from "@react-navigation/stack";
+import {fetchUser} from "./API/fetchUser";
+import MainScreen from "./compoments/MainScreen";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import DriveInfoScreen from "./compoments/TabBar/TabBarScreens/DriveInfoScreen";
+import BikeScreen from "./compoments/BikeScreen";
+const Stack = createStackNavigator();
 
 const App = () => {
-  const [showMenu, setShowMenu] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const handlePressMenu = () => {
-    setShowMenu(!showMenu);
-  };
+    const handleLogin = async () => {
+        const user = await fetchUser();
+        if(user?.role){
+            setIsAuthenticated(true);
+        }
 
-  const handlePressProfile = () => {
-    // handle profile button press
-  };
+    };
 
-  const handlePressHistory = () => {
-    // handle history button press
-  };
+    const handleLogout = async () => {
+        await AsyncStorage.removeItem('bikeToken')
+        setIsAuthenticated(false);
+    };
 
-  const handlePressLogout = () => {
-    // handle logout button press
-  };
-
-  return (
-      <View style={styles.container}>
-        <MapScreen />
-        {showMenu && (
-            <NavigationMenu
-                onPressProfile={handlePressProfile}
-                onPressHistory={handlePressHistory}
-                onPressLogout={handlePressLogout}
-            />
-        )}
-        <TouchableOpacity style={styles.menuButton} onPress={handlePressMenu}>
-          <Text style={styles.menuButtonText}>Menu</Text>
-        </TouchableOpacity>
-      </View>
-  );
+    return (
+        <NavigationContainer>
+            <Stack.Navigator>
+                <Stack.Screen name="LoginScreen" component={LoginSignupScreen} options={{ headerShown: false }}/>
+                <Stack.Screen name="MainScreen" component={MainScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="UserInfoScreen" component={UserInfoScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="CreateBikeScreen" component={CreateBikeScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="SearchScreen" component={SearchScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="DriveInfoScreen" component={DriveInfoScreen} options={{ headerShown: false }} />
+                <Stack.Screen name={"BikeScreen"} component={BikeScreen} options={{headerShown: false}}/>
+            </Stack.Navigator>
+        </NavigationContainer>
+    );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  menuButton: {
-    position: 'absolute',
-    top: 16,
-    left: 16,
-    backgroundColor: 'green',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    zIndex: 1,
-    elevation: 5,
-  },
-  menuButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-});
 
 export default App;
